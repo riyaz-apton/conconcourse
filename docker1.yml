@@ -1,0 +1,29 @@
+resources:
+- name: concourse
+  type: git
+  icon: github
+  source:
+    uri: https://github.com/Apton-riyazS/concourse.git
+    branch: master
+    access_token: ((github-access-token))
+
+jobs:
+- name: test
+  plan:
+  - get: concourse
+    trigger: true
+    version: every
+    params:
+      path: concourse
+  - task: unit-test
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: {repository: python, tag: "3.8.13-buster" }
+      inputs:
+        - name: concourse
+      run:
+        path: python
+        args: ["concourse/input.py"]
+         

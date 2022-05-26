@@ -1,0 +1,50 @@
+resource_types:
+- name: pull-request-base-resource
+  type: docker-image
+  source:
+    repository: teliaoss/github-pr-resource
+
+resources:
+- name: pull-request
+  type: pull-request-base-resource
+  check_every: 10s
+  #webhook_token: <WEBHOOK_TOKEN> 
+  source:
+    repository: concourse
+    access_token: ((github-access-token))
+    base_branch: master
+jobs:
+- name: test
+  plan:
+  - get: pull-request
+    trigger: true
+    version: latest # Tried with every as well...
+  - put: pull-request
+    params:
+      path: pull-request
+      status: pending
+  - task: unit-test
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source: {repository: alpine/git, tag: "latest"}
+      inputs:
+        - name: pull-request
+      run:
+        path: /bin/sh
+        args:
+          - -xce
+          - |
+            cd pull-request
+            git log --graph --all --color --pretty=format:"%x1b[31m%h%x09%x1b[32m%d%x1b[0m%x20%s" > log.txt
+            cat log.txt
+    on_failure:
+      put: pull-request
+      params:
+        path: pull-request
+        status: failure
+  - put: pull-request
+    params:
+      path: pull-request
+      status: success

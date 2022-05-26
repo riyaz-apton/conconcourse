@@ -1,0 +1,33 @@
+resources:
+- name: repo
+  type: pull-request
+  source:
+    access_token: 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
+    private_key: |
+      ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDaYBpIZGDozn+5to5coeRuPiy97MPL3YqdlZEBwizaVb8mrbNBqRXf2Q1FO2zZlTzrscXiTZy0hWOO8LwhULHFkXJAcfYRgVdlpmt6rgDZS2m8sDXtaD3ncyfxrEHEz6d4QJS6UjA3+qbuMP0zbP2gWdyK8L0OseTdsJK9J27xxFUHamBFBx4SlCVfF56e3gNWA1PqqdJJ1Y6hmejqBTna77q3jRLmg482IcfB4iWOeZ09HxnVGmtKM07k1Dv27SBz+6fjK64/ANvFhbeekxNaL4nXcIXGjF8MGl+6Pi7Jk1a2ew2pwBj/w8+YK25ubfcn080wNQAZLI0nHd26Bz/Djgtx1CdaFMRGq+Y+VHnfcL7YfCb6LVNDoHFCoLmuIhRDy1iTspFEBEBeSUyMOMwLzWpNeDDxEIzaCixinGTVn1s+ABnNHBhgGAm0C+0VDUw/H4tM1cNSQk4mp5FWlOKaeVfpAiPCSphnnRyPEnnIOQpRibzY3BxYy43PcCC34G8= riyaz@riyaz-Aspire-A715-75G
+    repo: git@github.com:Apton-riyazS/concourse.git
+jobs:
+- name: testpull
+  plan:
+  - get: repo
+    trigger: true
+  - put: repo
+    params:
+      path: repo
+      status: pending
+  - task: git
+    config:
+      platform: linux
+      image: docker:///concourse/git-resource
+      run:
+        path: sh
+        args:
+        - -c
+        - cd repo && git --no-pager show
+      inputs:
+      - name: repo
+        path: 
+  - put: repo
+    params:
+      path: repo
+      status: success
